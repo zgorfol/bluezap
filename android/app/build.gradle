@@ -50,6 +50,7 @@ android {
         targetSdkVersion 29
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+        ndk { debugSymbolLevel 'FULL' }
     }
 
     signingConfigs {
@@ -69,7 +70,6 @@ android {
         }
     }
 }
-
 
 flutter {
     source '../..'
