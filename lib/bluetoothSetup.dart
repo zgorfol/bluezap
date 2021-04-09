@@ -139,14 +139,18 @@ class _BluetoothSetupState extends State with WidgetsBindingObserver {
 
   // }
 
+  List<BluetoothDevice> _devList = [];
+  BluetoothState bState = BluetoothState.UNKNOWN;
+
   Widget bodyView() {
+    _devList = blState.devicesList;
     return SafeArea(
       child: SingleChildScrollView(
         child: Column(
           children: <Widget>[
             Container(
               child: blState.bluetoothState == BluetoothState.STATE_ON
-                  ? devicelistTree(blState.devicesList)
+                  ? devicelistTree(_devList)
                   : null,
             ),
           ],
@@ -154,8 +158,6 @@ class _BluetoothSetupState extends State with WidgetsBindingObserver {
       ),
     );
   }
-
-  BluetoothState bState = BluetoothState.UNKNOWN;
 
   Widget pertsistentView() {
     bState = blState.bluetoothState;
@@ -183,6 +185,9 @@ class _BluetoothSetupState extends State with WidgetsBindingObserver {
             ),
             onPressed: () async {
               await blState.getPairedDevices().then((_) {
+                setState(() {
+                  _devList = blState.devicesList;
+                });
                 showSnack('Device list refreshed');
               });
             },
@@ -239,7 +244,9 @@ class _BluetoothSetupState extends State with WidgetsBindingObserver {
           return GestureDetector(
             onTap: () => {
               showSnack("${data.name}"),
-              blState.device = data,
+              setState(() {
+                blState.device = data;
+              }),
             },
             child: Text(
               "\n ${data.name}",
