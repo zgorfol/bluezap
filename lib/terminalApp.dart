@@ -1,12 +1,19 @@
+import 'package:bluezap/bluetoothProvider.dart';
+import 'package:bluezap/bluetoothSetup.dart';
+import 'package:bluezap/locator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:provider/provider.dart';
-import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
+//import 'package:provider/provider.dart';
+//import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 
 import 'package:bluezap/theraphy.dart';
-import 'bluetoothProvider.dart';
+//import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
+//import 'bluetoothProvider.dart';
 import 'searchonweb.dart';
-import 'package:bluezap/main.dart';
+//import 'package:bluezap/main.dart';
+
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 
 class TerminalApp extends StatefulWidget {
   const TerminalApp({Key key}) : super(key: key);
@@ -17,17 +24,21 @@ class TerminalApp extends StatefulWidget {
 class _TerminalAppState extends State with WidgetsBindingObserver {
   AppLifecycleState state;
 
+  final blState = locator<BluetoothProvider>();
+
+  /*
   bool _isConnected = false;
   String lsearchStr;
   String lsearchURL;
   Theraphy ltheraphy;
   BluetoothDevice ldevice;
-  List<String> _termStr = new List();
+  */
+  final List<String> _termStr = new List();
 
-  BluetoothState _bluetoothState = BluetoothState.UNKNOWN;
+  //BluetoothState _bluetoothState = BluetoothState.UNKNOWN;
 
-  String _snackMessage = "";
-  ScrollController _scrollController = new ScrollController(
+  //String _snackMessage = "";
+  final ScrollController _scrollController = new ScrollController(
     initialScrollOffset: 0.0,
     keepScrollOffset: true,
   );
@@ -40,25 +51,50 @@ class _TerminalAppState extends State with WidgetsBindingObserver {
     _termStr.clear();
     myController = TextEditingController();
     WidgetsBinding.instance.addObserver(this);
+    blState.onChange.listen((e) => {
+          addTotermStr(e.eventData),
+        });
+    blState.onSnack.listen((e) => {
+          if (e.eventData != "")
+            {showSnack(e.eventData)}
+          else
+            {
+              if (_scaffoldKey.currentState != null)
+                {_scaffoldKey.currentState.removeCurrentSnackBar()}
+            }
+        });
   }
 
-  var blState;
-  bool blStateInit = true;
+  void showSnack(
+    String message, {
+    Duration duration: const Duration(seconds: 1),
+  }) {
+    _scaffoldKey.currentState.showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: duration,
+      ),
+    );
+  }
 
+  //bool blStateInit = true;
+/*
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 
+    
     final blueState = Provider.of<BluetoothProvider>(context);
 
     if (blStateInit) {
-      blState = blueState;
+      //blState = blueState;
       blState.onChange.listen((e) => {
             addTotermStr(e.eventData),
           });
       blStateInit = false;
     }
 
+    
     _isConnected = blState.isConnected;
     lsearchStr = blState.lsearchStr;
     lsearchURL = blState.lsearchURL;
@@ -66,10 +102,12 @@ class _TerminalAppState extends State with WidgetsBindingObserver {
     ldevice = blState.device;
 
     _bluetoothState = blState.bluetoothState;
-
+    
     _snackMessage = blState.snackMessage;
+    
+    String _snackMessage = blState.snackMessage;
     if (_snackMessage != "") {
-      show(_snackMessage);
+      showSnack(_snackMessage);
     } else {
       if (_scaffoldKey.currentState != null) {
         _scaffoldKey.currentState.removeCurrentSnackBar();
@@ -77,7 +115,7 @@ class _TerminalAppState extends State with WidgetsBindingObserver {
     }
   }
 
-  void show(
+  void showSnack(
     String message, {
     Duration duration: const Duration(seconds: 1),
   }) {
@@ -94,7 +132,7 @@ class _TerminalAppState extends State with WidgetsBindingObserver {
       //    ..removeCurrentSnackBar(),
     );
   }
-
+*/
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
@@ -119,8 +157,8 @@ class _TerminalAppState extends State with WidgetsBindingObserver {
 
   void addTotermStr(String addStr) {
     setState(() {
-      _termStr.length == 0 ||
-              _termStr.last.substring(_termStr.last.length - 1) == '\n'
+      _termStr.isEmpty
+          // || _termStr.last.substring(_termStr.last.length - 1) == '\n'
           ? _termStr.add(addStr)
           : _termStr.last += addStr;
       _scrollController.animateTo(
@@ -153,7 +191,7 @@ class _TerminalAppState extends State with WidgetsBindingObserver {
       child: Column(
         children: <Widget>[
           Visibility(
-            visible: _bluetoothState == BluetoothState.UNKNOWN,
+            visible: blState.progressBar,
             child: LinearProgressIndicator(
               backgroundColor: Colors.yellow,
               valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
@@ -194,13 +232,13 @@ class _TerminalAppState extends State with WidgetsBindingObserver {
         child: ListView(
       children: <Widget>[
         DrawerHeader(
+          decoration: BoxDecoration(color: Theme.of(context).primaryColor),
           child: Container(
               height: 142,
               width: MediaQuery.of(context).size.width,
               child: Image.asset(
                 "assets/launcher/icon.png",
               )),
-          decoration: BoxDecoration(color: Theme.of(context).primaryColor),
         ),
         ListTile(
           title: Text("Terminal"),
@@ -214,22 +252,22 @@ class _TerminalAppState extends State with WidgetsBindingObserver {
         ListTile(
           title: Text("Bluetooth setup"),
           onTap: () {
-            if (_isConnected) {
+            if (blState.isConnected) {
               blState.disconnect();
             }
             Navigator.of(context).pop();
             Navigator.of(context)
                 .pushAndRemoveUntil(
                     MaterialPageRoute(
-                      builder: (context) => BluetoothSetupProvider(),
+                      builder: (context) => BluetoothSetup(),
                     ),
                     // _route
                     ModalRoute.withName('/'))
                 .then((results) => {
-                      if (results != null && results.containsKey('device'))
-                        {
-                          blState.device = results['device'],
-                        }
+                      //if (results != null && results.containsKey('device'))
+                      //  {
+                      // blState.device = results['device'],
+                      //  }
                     });
           },
         ),
@@ -238,14 +276,16 @@ class _TerminalAppState extends State with WidgetsBindingObserver {
   }
 
   Future downloadScript() async {
-    addTotermStr(ltheraphy.fieldscript);
+    addTotermStr(blState.ltheraphy.fieldscript);
     await blState.sendMessageToBluetooth('mem\r\n@\r\n').then((valu1) => {
-          Future.delayed(Duration(milliseconds: 100)).then((value) => {
+          Future.delayed(Duration(milliseconds: 1000)).then((value) => {
                 blState
-                    .sendMessageToBluetooth('mem @\r\n' + ltheraphy.fieldscript)
+                    .sendMessageToBluetooth(
+                        //    'mem @\r\n' + blState.ltheraphy.fieldscript)
+                        'mem\r\n' + blState.ltheraphy.fieldscript + '\r\n@\r\n')
                     .then(
                       (value2) => {
-                        blState.show('Userprogram stored!'),
+                        showSnack('Userprogram stored!'),
                       },
                     ),
               }),
@@ -278,7 +318,7 @@ class _TerminalAppState extends State with WidgetsBindingObserver {
               },
             ),
             FlatButton.icon(
-              icon: _isConnected
+              icon: blState.isConnected
                   ? Icon(
                       Icons.bluetooth_connected,
                       color: Theme.of(context).indicatorColor,
@@ -296,8 +336,18 @@ class _TerminalAppState extends State with WidgetsBindingObserver {
               onPressed: () {
                 setState(() {
                   try {
-                    _bluetoothState = BluetoothState.UNKNOWN;
-                    _isConnected ? blState.disconnect() : blState.connect();
+                    blState.progressBar = true;
+                    blState.isConnected
+                        ? blState.disconnect().then((_) {
+                            setState(() {
+                              blState.progressBar = false;
+                            });
+                          })
+                        : blState.connect().then((_) {
+                            setState(() {
+                              blState.progressBar = false;
+                            });
+                          });
                   } catch (e) {
                     print(e);
                   }
@@ -324,13 +374,13 @@ class _TerminalAppState extends State with WidgetsBindingObserver {
                   ),
                   onPressed: () {
                     try {
-                      if (ltheraphy.fieldscript != null) {
-                        _isConnected
+                      if (blState.ltheraphy.fieldscript != null) {
+                        blState.isConnected
                             ? downloadScript()
-                            : blState.show('Bluetooth is disconected!');
+                            : showSnack('Bluetooth is disconected!');
                       }
                     } catch (e) {
-                      blState.show('Search a theraphy first!');
+                      showSnack('Search a theraphy first!');
                     }
                   },
                 ),
@@ -344,15 +394,24 @@ class _TerminalAppState extends State with WidgetsBindingObserver {
                   },
                 ),
                 FlatButton.icon(
+                  icon: Icon(Icons.folder_open_sharp),
+                  label: Text(
+                    "",
+                  ),
+                  onPressed: () {
+                    _searchFolder(context);
+                  },
+                ),
+                FlatButton.icon(
                   icon: Icon(Icons.keyboard_return_rounded),
                   label: Text(
                     "",
                   ),
                   onPressed: () {
                     blState.searchStr = myController.text;
-                    _isConnected
+                    blState.isConnected
                         ? blState.sendMessageToBluetooth(myController.text)
-                        : blState.show('Bluetooth is disconected!');
+                        : showSnack('Bluetooth is disconected!');
                   },
                 ),
               ],
@@ -363,19 +422,43 @@ class _TerminalAppState extends State with WidgetsBindingObserver {
     );
   }
 
-  _searchTheraphy(BuildContext context) async {
+  Future _searchFolder(BuildContext context) async {
+    try {
+      FilePickerResult result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['txt'],
+        //allowed extension to choose
+      );
+
+      if (result != null) {
+        //if there is selected file
+        //
+        File selectedFile = File(result.files.single.path);
+        String fileTheraphy = await selectedFile.readAsString();
+        blState.theraphy = Theraphy(fieldscript: fileTheraphy);
+        addTotermStr(fileTheraphy);
+      }
+    } catch (e) {
+      showSnack('File open execption.');
+    }
+  }
+
+  Future _searchTheraphy(BuildContext context) async {
     blState.searchStr = myController.text;
     try {
       final Theraphy chooseTheraphy = await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => SearchOnWeb(lsearchURL + myController.text),
+          builder: (context) =>
+              SearchOnWeb(blState.lsearchURL + myController.text),
         ),
       );
       if (chooseTheraphy != null) {
         blState.theraphy = chooseTheraphy;
         addTotermStr(chooseTheraphy.fieldscript);
       }
-    } catch (e) {}
+    } catch (e) {
+      showSnack('Web theraphy exception.');
+    }
   }
 }

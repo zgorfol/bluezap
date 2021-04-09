@@ -13,19 +13,29 @@ class MyEvent {
 }
 
 class BluetoothProvider extends DataProvider {
+  final FlutterBluetoothSerial _bluetooth = FlutterBluetoothSerial.instance;
   BluetoothState _bluetoothState = BluetoothState.UNKNOWN;
-  FlutterBluetoothSerial _bluetooth = FlutterBluetoothSerial.instance;
+  bool _progressBar = false;
   BluetoothConnection _connection;
   List<BluetoothDevice> _devicesList = [];
 
   var changeController = new StreamController<MyEvent>();
+  var SnackController = new StreamController<MyEvent>();
 
   Stream<MyEvent> get onChange => changeController.stream;
+  Stream<MyEvent> get onSnack => SnackController.stream;
+
   BluetoothConnection get connection => this._connection;
-  bool get isConnected =>
-      this._connection != null && this._connection.isConnected;
+  bool get isConnected => connection != null && connection.isConnected;
+
+  bool get progressBar => _progressBar;
   BluetoothState get bluetoothState => _bluetoothState;
+
+  //bool get isblStateON => _bluetoothState == BluetoothState.STATE_ON;
+
   List<BluetoothDevice> get devicesList => _devicesList;
+
+  /*
   String _snackMessage = "";
 
   String get snackMessage => _snackMessage;
@@ -34,18 +44,30 @@ class BluetoothProvider extends DataProvider {
     this._snackMessage = message;
     notifyListeners();
   }
-
+  */
+/*
   set showMsg(String message) {
     show(message);
   }
+*/
+
+  set progressBar(bool progBar) {
+    _progressBar = progBar;
+    notifyListeners();
+  }
+
+  set devicesList(List<BluetoothDevice> devLst) {
+    _devicesList = devLst;
+    notifyListeners();
+  }
 
   set bluetoothState(BluetoothState blueSt) {
-    this._bluetoothState = blueSt;
+    _bluetoothState = blueSt;
     notifyListeners();
   }
 
   set connection(BluetoothConnection _conn) {
-    this._connection = _conn;
+    _connection = _conn;
     notifyListeners();
   }
 
@@ -64,18 +86,18 @@ class BluetoothProvider extends DataProvider {
 
   void initBlueState() {
     // Get current state
-    FlutterBluetoothSerial.instance.state.then((state) {
+    _bluetooth.state.then((state) {
       bluetoothState = state;
+      //notifyListeners();
     }).catchError((e) => print(e));
     // If the bluetooth of the device is not enabled,
     // then request permission to turn on bluetooth
     // as the app starts up
     enableBluetooth();
     // Listen for further state changes
-    FlutterBluetoothSerial.instance
-        .onStateChanged()
-        .listen((BluetoothState state) {
+    _bluetooth.onStateChanged().listen((BluetoothState state) {
       bluetoothState = state;
+      //notifyListeners();
       getPairedDevices();
     });
   }
@@ -94,11 +116,12 @@ class BluetoothProvider extends DataProvider {
     // Retrieving the current Bluetooth state
 
     try {
-      bluetoothState = await FlutterBluetoothSerial.instance.state;
-      if (bluetoothState == BluetoothState.STATE_OFF) {
+      bluetoothState = await _bluetooth.state;
+      //notifyListeners();
+      if (bluetoothState != BluetoothState.STATE_ON) {
         // If the bluetooth is off, then turn it on first
         // and then retrieve the devices that are paired.
-        await FlutterBluetoothSerial.instance.requestEnable();
+        await _bluetooth.requestEnable();
         await getPairedDevices();
         return true;
       } else {
@@ -113,27 +136,29 @@ class BluetoothProvider extends DataProvider {
 
   // For retrieving and storing the paired devices
   // in a list.
-  Future<void> getPairedDevices() async {
+  Future<bool> getPairedDevices() async {
     List<BluetoothDevice> devices = [];
     try {
       devices = await _bluetooth.getBondedDevices();
     } on PlatformException {
       print("Error: Bluetooth PlatformException");
     }
-    _devicesList = devices;
+    devicesList = devices;
+    return true;
   }
 
   // Method to connect to bluetooth
-  void connect() async {
+  Future<bool> connect() async {
     // _needProgIndicator = true;
     if (ldevice == null) {
-      show('No device selected');
+      await show('No device selected');
     } else {
       if (!isConnected) {
         await BluetoothConnection.toAddress(ldevice.address).then((_conn) {
           print('Connected to the device');
 
           connection = _conn;
+          //notifyListeners();
 
           connection.input.listen(
             (data) {
@@ -156,15 +181,20 @@ class BluetoothProvider extends DataProvider {
         });
       }
     }
+    return true;
   }
 
   // Method to disconnect bluetooth
-  void disconnect() async {
+  Future<bool> disconnect() async {
     //this._needProgIndicator = false;
-    await connection.close().then((_connect) => connection = _connection);
+    await connection.close().then((_connect) => {
+          connection = _connection,
+          //notifyListeners(),
+        });
     //connection = _connection;
 
-    show('Device disconnected');
+    await show('Device disconnected');
+    return true;
   }
 
   // Method to send message,
@@ -179,39 +209,44 @@ class BluetoothProvider extends DataProvider {
 
   void bluetoothsetup() {
     try {
-      FlutterBluetoothSerial.instance.openSettings();
+      _bluetooth.openSettings();
     } catch (e) {
       print('Bluetooth Setup Error!!!');
     }
   }
 
-  Future<void> switchbl(bool value) async {
+  Future<BluetoothState> switchbl() async {
     try {
-      if (value) {
-        await FlutterBluetoothSerial.instance.requestEnable();
+      if (bluetoothState != BluetoothState.STATE_ON) {
+        await _bluetooth.requestEnable();
       } else {
-        await FlutterBluetoothSerial.instance.requestDisable();
+        await _bluetooth.requestDisable();
       }
 
       await getPairedDevices();
 
       if (isConnected) {
-        disconnect();
+        await disconnect();
       }
+      bluetoothState = await _bluetooth.state;
     } catch (e) {
       print("Bluetooth switch exception");
       print(e);
     }
+    return bluetoothState;
   }
 
   // Method to show a Snackbar,
   // taking message as the text
   Future show(String message, {duration: const Duration(seconds: 1)}) async {
-    snackMessage = message;
+    //snackMessage = message;
+    SnackController.add(MyEvent(message));
+    /*
     notifyListeners();
     await new Future.delayed(duration).then((value) => {
-          snackMessage = "",
+          //snackMessage = "",
           notifyListeners(),
         });
+    */
   }
 }

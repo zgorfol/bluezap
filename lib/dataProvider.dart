@@ -16,7 +16,7 @@ class DataProvider extends ChangeNotifier {
   }
 
   set searchStr(String wStr) {
-    if (wStr == null) wStr = "";
+    wStr ??= "";
     lsearchStr = wStr;
     this.saveData();
   }
@@ -88,13 +88,11 @@ class DataProvider extends ChangeNotifier {
   }
 
   void initdataSaved(DataProvider value) {
-    if (value == null) {
-      value = new DataProvider(
-        lsearchStr: 'i',
-        lsearchURL:
-            "http://biotronics.eu/rest/bioresonance-therapies?_format=json&title=",
-      );
-    }
+    value ??= new DataProvider(
+      lsearchStr: 'i',
+      lsearchURL:
+          "http://biotronics.eu/rest/bioresonance-therapies?_format=json&title=",
+    );
     if (value.lsearchURL == null) {
       value.lsearchStr = 'initafterread';
       value.lsearchURL =
@@ -110,7 +108,7 @@ class DataProvider extends ChangeNotifier {
   void saveData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     debugPrint('Data saved!!!');
-    prefs.setString(key, this.toJson());
+    await prefs.setString(key, this.toJson());
     notifyListeners();
   }
 

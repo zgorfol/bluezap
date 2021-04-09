@@ -1,6 +1,8 @@
+import 'package:bluezap/locator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
-import 'package:provider/provider.dart';
+//import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
+//import 'package:provider/provider.dart';
 import 'bluetoothProvider.dart';
 
 /*
@@ -24,10 +26,12 @@ class _BluetoothSetupState extends State with WidgetsBindingObserver {
   //_BluetoothSetupState();
   AppLifecycleState state;
 
-  BluetoothState _bluetoothState = BluetoothState.UNKNOWN;
-  List<BluetoothDevice> _devicesList = [];
-  BluetoothDevice _device;
-  String _snackMessage = "";
+  final blState = locator<BluetoothProvider>();
+
+  // BluetoothState _bluetoothState = BluetoothState.UNKNOWN;
+  //List<BluetoothDevice> _devicesList = [];
+  //BluetoothDevice _device;
+  //String _snackMessage = "";
   // String _errorMessage;
 
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
@@ -36,7 +40,7 @@ class _BluetoothSetupState extends State with WidgetsBindingObserver {
   //BluetoothConnection _connection;
 
   final _searchTextCtrl = TextEditingController();
-  ScrollController _scrollController = new ScrollController(
+  final ScrollController _scrollController = new ScrollController(
     initialScrollOffset: 0.0,
     keepScrollOffset: true,
   );
@@ -45,6 +49,17 @@ class _BluetoothSetupState extends State with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    /*
+    blState.onSnack.listen((e) => {
+          if (e.eventData != "")
+            {showSnack(e.eventData)}
+          else
+            {
+              if (_scaffoldKey.currentState != null)
+                {_scaffoldKey.currentState.removeCurrentSnackBar()}
+            }
+        });
+    */
   }
 
   @override
@@ -55,6 +70,18 @@ class _BluetoothSetupState extends State with WidgetsBindingObserver {
     _searchTextCtrl.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void showSnack(
+    String message, {
+    Duration duration: const Duration(seconds: 1),
+  }) {
+    _scaffoldKey.currentState.showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: duration,
+      ),
+    );
   }
 
   @override
@@ -72,42 +99,45 @@ class _BluetoothSetupState extends State with WidgetsBindingObserver {
 
   @override
   Future<bool> didPopRoute() async {
-    Navigator.of(context).pop({'device': _device});
+    Navigator.of(context).pop({'device': blState.device});
     return Future<bool>.value(true);
   }
 
-  var blState;
-  bool blStateInit = true;
+  //var blState;
+  //bool blStateInit = true;
 //  ModalRoute<dynamic> _route;
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
+  // bool isStateON = false;
 
-    //   _route?.removeScopedWillPopCallback(askTheUserIfTheyAreSure);
-    //   _route = //ModalRoute.withName('/');
-    //       ModalRoute.of(context);
-    //   _route?.addScopedWillPopCallback(askTheUserIfTheyAreSure);
+  //@override
+  //void didChangeDependencies() {
+  //  super.didChangeDependencies();
 
-    final blueState = Provider.of<BluetoothProvider>(context);
-    if (blStateInit) {
-      blState = blueState;
-      blStateInit = false;
-    }
+  //   _route?.removeScopedWillPopCallback(askTheUserIfTheyAreSure);
+  //   _route = //ModalRoute.withName('/');
+  //       ModalRoute.of(context);
+  //   _route?.addScopedWillPopCallback(askTheUserIfTheyAreSure);
 
-    _bluetoothState = blState.bluetoothState;
-    _devicesList = blState.devicesList;
-    _device = blState.device;
+  // final blueState = Provider.of<BluetoothProvider>(context);
+  // if (blStateInit) {
+  //   blState = blueState;
+  //   blStateInit = false;
+  // }
 
-    _snackMessage = blState.snackMessage;
-    if (_snackMessage != "") {
-      show(_snackMessage);
-    } else {
-      if (_scaffoldKey.currentState != null) {
-        _scaffoldKey.currentState.removeCurrentSnackBar();
-      }
-    }
-  }
+  // _bluetoothState = blState.bluetoothState;
+  //_devicesList = blState.devicesList;
+  //_device = blState.device;
+  //
+  //_snackMessage = blState.snackMessage;
+  //if (_snackMessage != "") {
+  //  show(_snackMessage);
+  //} else {
+  //  if (_scaffoldKey.currentState != null) {
+  //    _scaffoldKey.currentState.removeCurrentSnackBar();
+  //  }
+  //}
+
+  // }
 
   Widget bodyView() {
     return SafeArea(
@@ -115,8 +145,8 @@ class _BluetoothSetupState extends State with WidgetsBindingObserver {
         child: Column(
           children: <Widget>[
             Container(
-              child: _bluetoothState == BluetoothState.STATE_ON
-                  ? devicelistTree(_devicesList)
+              child: blState.bluetoothState == BluetoothState.STATE_ON
+                  ? devicelistTree(blState.devicesList)
                   : null,
             ),
           ],
@@ -125,7 +155,10 @@ class _BluetoothSetupState extends State with WidgetsBindingObserver {
     );
   }
 
+  BluetoothState bState = BluetoothState.UNKNOWN;
+
   Widget pertsistentView() {
+    bState = blState.bluetoothState;
     return SizedBox(
       width: MediaQuery.of(context).size.width,
       child: Row(
@@ -150,19 +183,24 @@ class _BluetoothSetupState extends State with WidgetsBindingObserver {
             ),
             onPressed: () async {
               await blState.getPairedDevices().then((_) {
-                blState.show('Device list refreshed');
+                showSnack('Device list refreshed');
               });
             },
           ),
           FlatButton.icon(
-            icon: _bluetoothState.isEnabled
+            icon: bState == BluetoothState.STATE_ON
                 ? Icon(Icons.toggle_on_sharp)
                 : Icon(Icons.toggle_off),
             label: Text(
               "",
             ),
-            onPressed: () {
-              blState.switchbl(!_bluetoothState.isEnabled);
+            onPressed: () async {
+              await blState.switchbl().then((value) => {
+                    setState(() {
+                      bState = value;
+                    })
+                    // bState = value,
+                  });
             },
           ),
         ],
@@ -170,7 +208,7 @@ class _BluetoothSetupState extends State with WidgetsBindingObserver {
     );
   }
 
-//@override
+  @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () => didPopRoute(),
@@ -197,24 +235,26 @@ class _BluetoothSetupState extends State with WidgetsBindingObserver {
         padding: EdgeInsets.all(10.0),
         itemBuilder: (BuildContext context, int index) {
           var data = _devicesList[index];
-          var address = _device == null ? null : _device.address;
+          var address = blState.device == null ? null : blState.device.address;
           return GestureDetector(
-              child: Text(
-                "\n ${data.name}",
-                style: TextStyle(
-                  backgroundColor: data.address == address
-                      ? Theme.of(context).accentColor
-                      : Theme.of(context).dialogBackgroundColor,
-                  fontSize: 18.0,
-                ),
+            onTap: () => {
+              showSnack("${data.name}"),
+              blState.device = data,
+            },
+            child: Text(
+              "\n ${data.name}",
+              style: TextStyle(
+                backgroundColor: data.address == address
+                    ? Theme.of(context).accentColor
+                    : Theme.of(context).dialogBackgroundColor,
+                fontSize: 18.0,
               ),
-              onTap: () => {
-                    blState.showMsg = "${data.name}",
-                    blState.device = data,
-                  });
+            ),
+          );
         });
   }
 
+/*
   void show(
     String message, {
     Duration duration: const Duration(seconds: 1),
@@ -223,4 +263,5 @@ class _BluetoothSetupState extends State with WidgetsBindingObserver {
       content: Text(message),
     ));
   }
+  */
 }

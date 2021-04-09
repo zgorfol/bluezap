@@ -76,7 +76,7 @@ class _SearchOnWebState extends State<SearchOnWeb> {
   Future<List<Theraphy>> fetchTheraphy() async {
     //final response = await http.get("${dataSaved.searchURL}${this.searchStr}");
     try {
-      final response = await http.get("${this.searchStr}");
+      final response = await http.get(Uri.parse("${this.searchStr}"));
       if (response.statusCode == 200) {
         List<Theraphy> lst = [];
         for (final e in jsonDecode(response.body))
@@ -140,7 +140,6 @@ class _OnTappedListState extends State<OnTappedList> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: FlatButton(
-              child: Text('Choose theraphy'),
               color: Theme.of(context).primaryColor,
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
@@ -149,6 +148,7 @@ class _OnTappedListState extends State<OnTappedList> {
                 Navigator.pop(context, theraphy);
                 Navigator.pop(context, theraphy);
               },
+              child: Text('Choose theraphy'),
             ),
           ),
         ],

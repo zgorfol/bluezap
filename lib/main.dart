@@ -1,13 +1,18 @@
+import 'package:bluezap/locator.dart';
 import 'package:flutter/material.dart';
 import 'package:bluezap/bluetoothSetup.dart';
-import 'package:provider/provider.dart';
+// import 'package:provider/provider.dart';
 
 import 'terminalapp.dart';
-import 'bluetoothProvider.dart';
+//import 'bluetoothProvider.dart';
 //import 'pages/bluetoothSetup.dart';
 
-void main() => runApp(MyApp());
+void main() {
+  locator_init();
+  runApp(MyApp());
+}
 
+/*
 class TerminalAppProvider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -31,6 +36,7 @@ class BluetoothSetupProvider extends TerminalAppProvider {
     );
   }
 }
+*/
 
 class MyApp extends StatelessWidget {
   @override
@@ -50,8 +56,8 @@ class MyApp extends StatelessWidget {
         dialogBackgroundColor: Colors.white, // bluetooth on button
       ),
       routes: {
-        '/': (BuildContext context) => TerminalAppProvider(),
-        '/bluetooth': (BuildContext context) => BluetoothSetupProvider(),
+        '/': (BuildContext context) => TerminalApp(),
+        '/bluetooth': (BuildContext context) => BluetoothSetup(),
       },
       initialRoute: '/',
       //home: TerminalAppProvider(),
@@ -70,16 +76,16 @@ class MainScreen extends StatelessWidget {
       ),
       body: Center(
         child: RaisedButton(
-          child: Text("Go To StatefulWidget Screen"),
           onPressed: () {
             Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) {
-                  return TerminalAppProvider();
+                  return TerminalApp();
                 },
               ),
             );
           },
+          child: Text('Go To StatefulWidget Screen'),
         ),
       ),
     );

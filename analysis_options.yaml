@@ -1,0 +1,22 @@
+include: package:pedantic/analysis_options.yaml
+
+analyzer:
+  errors:
+    todo: ignore
+    omit_local_variable_types: ignore
+    prefer_collection_literals: ignore
+    null_aware_in_logical_operator: ignore
+    null_aware_in_condition: ignore
+    deprecated_member_use: ignore
+    unchecked_use_of_nullable_value: ignore
+    argument_type_not_assignable: ignore
+
+    use_of_void_result: ignore
+    missing_default_value_for_parameter: ignore
+    not_initialized_non_nullable_instance_field: ignore
+    default_list_constructor: ignore
+    unnecessary_this: ignore
+    prefer_single_quotes: ignore
+    unnecessary_new: ignore
+    prefer_equal_for_default_values: ignore
+    curly_braces_in_flow_control_structures: ignore
