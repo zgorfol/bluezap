@@ -3,17 +3,11 @@ import 'package:bluezap/bluetoothSetup.dart';
 import 'package:bluezap/locator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-//import 'package:provider/provider.dart';
-//import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
-
 import 'package:bluezap/theraphy.dart';
-//import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
-//import 'bluetoothProvider.dart';
 import 'searchonweb.dart';
-//import 'package:bluezap/main.dart';
-
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
+import 'package:package_info/package_info.dart';
 
 class TerminalApp extends StatefulWidget {
   const TerminalApp({Key key}) : super(key: key);
@@ -45,9 +39,17 @@ class _TerminalAppState extends State with WidgetsBindingObserver {
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   TextEditingController myController;
 
+  PackageInfo _packageInfo = PackageInfo(
+    appName: 'Unknown',
+    packageName: 'Unknown',
+    version: 'Unknown',
+    buildNumber: 'Unknown',
+  );
+
   @override
   void initState() {
     super.initState();
+    _initPackageInfo();
     _termStr.clear();
     myController = TextEditingController();
     WidgetsBinding.instance.addObserver(this);
@@ -63,6 +65,20 @@ class _TerminalAppState extends State with WidgetsBindingObserver {
                 {_scaffoldKey.currentState.removeCurrentSnackBar()}
             }
         });
+  }
+
+  Future<void> _initPackageInfo() async {
+    final PackageInfo info = await PackageInfo.fromPlatform();
+    setState(() {
+      _packageInfo = info;
+    });
+  }
+
+  Widget _infoTile(String title, String subtitle) {
+    return ListTile(
+      title: Text(title),
+      subtitle: Text(subtitle.isNotEmpty ? subtitle : 'Not set'),
+    );
   }
 
   void showSnack(
@@ -271,6 +287,11 @@ class _TerminalAppState extends State with WidgetsBindingObserver {
                     });
           },
         ),
+        Divider(color: Colors.black),
+        _infoTile('App name', _packageInfo.appName),
+        _infoTile('Package name', _packageInfo.packageName),
+        _infoTile('App version', _packageInfo.version),
+        _infoTile('Build number', _packageInfo.buildNumber),
       ],
     ));
   }
