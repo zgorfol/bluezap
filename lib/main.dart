@@ -65,6 +65,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
+/*
 class MainScreen extends StatelessWidget {
   MainScreen({Key key}) : super(key: key);
 
@@ -91,6 +92,7 @@ class MainScreen extends StatelessWidget {
     );
   }
 }
+*/
 
 /*
 
