@@ -5,7 +5,15 @@ class Theraphy {
   String bodyvalue;
 
   Theraphy(
-      {this.title, this.bodyvalue, this.fieldscript, this.fieldurzadzenie});
+      {this.title = "",
+      this.bodyvalue = "",
+      this.fieldscript = "",
+      this.fieldurzadzenie = ""});
+
+  factory Theraphy.empty() {
+    return Theraphy(
+        title: "", bodyvalue: "", fieldscript: "", fieldurzadzenie: "");
+  }
 
   factory Theraphy.fromRest(Map<String, dynamic> json) {
     return Theraphy(

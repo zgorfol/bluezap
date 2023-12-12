@@ -6,10 +6,12 @@ import 'theraphy.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 
 class DataProvider extends ChangeNotifier {
-  String lsearchStr;
-  String lsearchURL;
-  Theraphy ltheraphy;
-  BluetoothDevice ldevice;
+  String lsearchStr = "";
+  String lsearchURL = "";
+  Theraphy ltheraphy = Theraphy.empty();
+  BluetoothDevice ldevice = BluetoothDevice(address: "");
+
+  DataProvider({lsearchStr = "", lsearchURL = "", ltheraphy, ldevice});
 
   String get searchStr {
     return lsearchStr;
@@ -52,9 +54,6 @@ class DataProvider extends ChangeNotifier {
     this.saveData();
   }
 
-  DataProvider(
-      {this.lsearchStr, this.lsearchURL, this.ltheraphy, this.ldevice});
-
   factory DataProvider.fromJson(String str) =>
       DataProvider.fromMap(json.decode(str));
 
@@ -81,14 +80,13 @@ class DataProvider extends ChangeNotifier {
   final String key = "Data";
 
   void initdataProvider() {
-    this
-        .read()
-        .then((value) => initdataSaved(value))
-        .catchError((onError) => initdataSaved(null));
+    this.read().then((value) => initdataSaved(value)).catchError((onError) =>
+        initdataSaved(DataProvider(
+            lsearchStr: "", lsearchURL: "", ltheraphy: "", ldevice: "")));
   }
 
   void initdataSaved(DataProvider value) {
-    value ??= new DataProvider(
+    value = new DataProvider(
       lsearchStr: 'i',
       lsearchURL:
           "http://biotronics.eu/rest/bioresonance-therapies?_format=json&title=",
@@ -115,6 +113,6 @@ class DataProvider extends ChangeNotifier {
   Future<DataProvider> read() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     debugPrint('Data read!!!');
-    return DataProvider.fromJson(prefs.getString(key));
+    return DataProvider.fromJson(prefs.getString(key) ?? "");
   }
 }

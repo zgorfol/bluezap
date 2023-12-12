@@ -17,14 +17,14 @@ Map<String, Color> colors = {
 */
 
 class BluetoothSetup extends StatefulWidget {
-  BluetoothSetup({Key key}) : super(key: key);
+  BluetoothSetup();
   @override
   _BluetoothSetupState createState() => _BluetoothSetupState();
 }
 
 class _BluetoothSetupState extends State with WidgetsBindingObserver {
   //_BluetoothSetupState();
-  AppLifecycleState state;
+  late AppLifecycleState state;
 
   final blState = locator<BluetoothProvider>();
 
@@ -74,9 +74,10 @@ class _BluetoothSetupState extends State with WidgetsBindingObserver {
 
   void showSnack(
     String message, {
-    Duration duration: const Duration(seconds: 1),
+    Duration duration = const Duration(seconds: 1),
   }) {
-    _scaffoldKey.currentState.showSnackBar(
+    //_scaffoldKey.currentState.showSnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
         duration: duration,
@@ -167,22 +168,24 @@ class _BluetoothSetupState extends State with WidgetsBindingObserver {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         mainAxisSize: MainAxisSize.max,
         children: <Widget>[
-          FlatButton.icon(
+          IconButton(
+            color: Colors.blue,
             icon: Icon(
               Icons.settings_bluetooth_sharp,
             ),
-            label: Text(
+            /*label: Text(
               "",
-            ),
+            ),*/
             onPressed: () {
               blState.bluetoothsetup();
             },
           ),
-          FlatButton.icon(
+          IconButton(
+            color: Colors.blue,
             icon: Icon(Icons.refresh_sharp),
-            label: Text(
+            /*label: Text(
               "",
-            ),
+            ),*/
             onPressed: () async {
               await blState.getPairedDevices().then((_) {
                 setState(() {
@@ -192,13 +195,14 @@ class _BluetoothSetupState extends State with WidgetsBindingObserver {
               });
             },
           ),
-          FlatButton.icon(
+          IconButton(
+            color: Colors.blue,
             icon: bState == BluetoothState.STATE_ON
                 ? Icon(Icons.toggle_on_sharp)
                 : Icon(Icons.toggle_off),
-            label: Text(
+            /*label: Text(
               "",
-            ),
+            ),*/
             onPressed: () async {
               await blState.switchbl().then((value) => {
                     setState(() {
@@ -252,7 +256,7 @@ class _BluetoothSetupState extends State with WidgetsBindingObserver {
               "\n ${data.name}",
               style: TextStyle(
                 backgroundColor: data.address == address
-                    ? Theme.of(context).accentColor
+                    ? Theme.of(context).colorScheme.secondary //accentColor
                     : Theme.of(context).dialogBackgroundColor,
                 fontSize: 18.0,
               ),

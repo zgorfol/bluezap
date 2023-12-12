@@ -16,9 +16,9 @@ class SearchOnWeb extends StatefulWidget {
 
 class _SearchOnWebState extends State<SearchOnWeb> {
   final String searchStr;
-  _SearchOnWebState({this.searchStr});
+  _SearchOnWebState({required this.searchStr});
 
-  Future<List<Theraphy>> futureTheraphy;
+  late Future<List<Theraphy>> futureTheraphy;
 
   @override
   void initState() {
@@ -38,14 +38,16 @@ class _SearchOnWebState extends State<SearchOnWeb> {
           builder: (context, snapshot) {
             if (snapshot.hasData) {
               return ListView(
-                children: List.generate(snapshot.data.length, (index) {
+                children: List.generate(snapshot.data?.length ?? 0, (index) {
                   return ListTile(
                       //padding: const EdgeInsets.fromLTRB(20.0, 10.0, 10.0, 10.0),
                       title: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(snapshot.data[index].title.toString()),
-                          Text(snapshot.data[index].fieldurzadzenie.toString()),
+                          Text(snapshot.data?[index].title.toString() ?? ""),
+                          Text(snapshot.data?[index].fieldurzadzenie
+                                  .toString() ??
+                              ""),
                         ],
                       ),
                       onTap: () {
@@ -53,8 +55,9 @@ class _SearchOnWebState extends State<SearchOnWeb> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  OnTappedList(theraphy: snapshot.data[index]),
+                              builder: (context) => OnTappedList(
+                                  theraphy:
+                                      snapshot.data?[index] ?? Theraphy()),
                             ));
                       });
                 }),
@@ -93,7 +96,7 @@ class _SearchOnWebState extends State<SearchOnWeb> {
 
 class OnTappedList extends StatefulWidget {
   final Theraphy theraphy;
-  OnTappedList({this.theraphy});
+  OnTappedList({required this.theraphy});
 
   @override
   _OnTappedListState createState() => _OnTappedListState(
@@ -103,7 +106,7 @@ class OnTappedList extends StatefulWidget {
 
 class _OnTappedListState extends State<OnTappedList> {
   final Theraphy theraphy;
-  _OnTappedListState({this.theraphy});
+  _OnTappedListState({required this.theraphy});
 
   @override
   void initState() {
@@ -139,11 +142,11 @@ class _OnTappedListState extends State<OnTappedList> {
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: FlatButton(
-              color: Theme.of(context).primaryColor,
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-              textColor: Theme.of(context).colorScheme.background,
+            child: ElevatedButton(
+              //color: Theme.of(context).primaryColor,
+              //materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              //padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              //textColor: Theme.of(context).colorScheme.background,
               onPressed: () {
                 Navigator.pop(context, theraphy);
                 Navigator.pop(context, theraphy);

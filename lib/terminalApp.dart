@@ -2,7 +2,7 @@ import 'package:bluezap/bluetoothProvider.dart';
 import 'package:bluezap/bluetoothSetup.dart';
 import 'package:bluezap/locator.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
+//import 'package:flutter/rendering.dart';
 import 'package:bluezap/theraphy.dart';
 import 'searchonweb.dart';
 import 'dart:io';
@@ -10,13 +10,13 @@ import 'package:file_picker/file_picker.dart';
 import 'package:package_info/package_info.dart';
 
 class TerminalApp extends StatefulWidget {
-  const TerminalApp({Key key}) : super(key: key);
+  TerminalApp();
   @override
   _TerminalAppState createState() => _TerminalAppState();
 }
 
 class _TerminalAppState extends State with WidgetsBindingObserver {
-  AppLifecycleState state;
+  AppLifecycleState state = AppLifecycleState.inactive;
 
   final blState = locator<BluetoothProvider>();
 
@@ -27,7 +27,7 @@ class _TerminalAppState extends State with WidgetsBindingObserver {
   Theraphy ltheraphy;
   BluetoothDevice ldevice;
   */
-  final List<String> _termStr = new List();
+  final List<String> _termStr = [];
 
   //BluetoothState _bluetoothState = BluetoothState.UNKNOWN;
 
@@ -37,7 +37,7 @@ class _TerminalAppState extends State with WidgetsBindingObserver {
     keepScrollOffset: true,
   );
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
-  TextEditingController myController;
+  TextEditingController myController = TextEditingController();
 
   PackageInfo _packageInfo = PackageInfo(
     appName: 'Unknown',
@@ -62,7 +62,10 @@ class _TerminalAppState extends State with WidgetsBindingObserver {
           else
             {
               if (_scaffoldKey.currentState != null)
-                {_scaffoldKey.currentState.removeCurrentSnackBar()}
+                {
+                  //_scaffoldKey.currentState.removeCurrentSnackBar()
+                  ScaffoldMessenger.of(context).removeCurrentSnackBar()
+                }
             }
         });
   }
@@ -83,9 +86,10 @@ class _TerminalAppState extends State with WidgetsBindingObserver {
 
   void showSnack(
     String message, {
-    Duration duration: const Duration(seconds: 1),
+    Duration duration = const Duration(seconds: 1),
   }) {
-    _scaffoldKey.currentState.showSnackBar(
+    //_scaffoldKey.currentState.showSnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
         duration: duration,
@@ -185,7 +189,8 @@ class _TerminalAppState extends State with WidgetsBindingObserver {
     });
   }
 
-  Widget keyboardDismisser({BuildContext context, Widget child}) {
+  Widget keyboardDismisser(
+      {required BuildContext context, required Widget child}) {
     final gesture = GestureDetector(
       onTap: () {
         FocusScope.of(context).requestFocus(new FocusNode());
@@ -321,39 +326,40 @@ class _TerminalAppState extends State with WidgetsBindingObserver {
         key: _scaffoldKey,
         appBar: AppBar(title: Text("blueZAP"), actions: <Widget>[
           ButtonBar(alignment: MainAxisAlignment.spaceEvenly, children: [
-            FlatButton.icon(
+            IconButton(
+              color: Colors.blue,
               icon: Icon(
                 Icons.restore_from_trash,
-                color: Theme.of(context).iconTheme.color,
+                color: Theme.of(context).primaryColorDark,
               ),
-              label: Text(
+              /*label: Text(
                 "",
                 style: TextStyle(
                   color: Theme.of(context).iconTheme.color,
                 ),
-              ),
+              ),*/
               onPressed: () {
                 setState(() {
                   _termStr.clear();
                 });
               },
             ),
-            FlatButton.icon(
+            IconButton(
               icon: blState.isConnected
                   ? Icon(
                       Icons.bluetooth_connected,
-                      color: Theme.of(context).indicatorColor,
+                      color: Theme.of(context).primaryColorDark,
                     )
                   : Icon(
                       Icons.bluetooth_disabled,
                       color: Theme.of(context).errorColor,
                     ),
-              label: Text(
+              /*label: Text(
                 "",
                 style: TextStyle(
                   color: Theme.of(context).iconTheme.color,
                 ),
-              ),
+              ),*/
               onPressed: () {
                 setState(() {
                   try {
@@ -386,13 +392,14 @@ class _TerminalAppState extends State with WidgetsBindingObserver {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               mainAxisSize: MainAxisSize.max,
               children: <Widget>[
-                FlatButton.icon(
+                IconButton(
+                  color: Colors.blue,
                   icon: Icon(
                     Icons.download_sharp,
                   ),
-                  label: Text(
+                  /*label: Text(
                     "",
-                  ),
+                  ),*/
                   onPressed: () {
                     try {
                       if (blState.ltheraphy.fieldscript != null) {
@@ -405,29 +412,32 @@ class _TerminalAppState extends State with WidgetsBindingObserver {
                     }
                   },
                 ),
-                FlatButton.icon(
+                IconButton(
+                  color: Colors.blue,
                   icon: Icon(Icons.search_sharp),
-                  label: Text(
+                  /*label: Text(
                     "",
-                  ),
+                  ),*/
                   onPressed: () {
                     _searchTheraphy(context);
                   },
                 ),
-                FlatButton.icon(
+                IconButton(
+                  color: Colors.blue,
                   icon: Icon(Icons.folder_open_sharp),
-                  label: Text(
+                  /*label: Text(
                     "",
-                  ),
+                  ),*/
                   onPressed: () {
                     _searchFolder(context);
                   },
                 ),
-                FlatButton.icon(
+                IconButton(
+                  color: Colors.blue,
                   icon: Icon(Icons.keyboard_return_rounded),
-                  label: Text(
+                  /*label: Text(
                     "",
-                  ),
+                  ),*/
                   onPressed: () {
                     blState.searchStr = myController.text;
                     blState.isConnected
@@ -445,7 +455,7 @@ class _TerminalAppState extends State with WidgetsBindingObserver {
 
   Future _searchFolder(BuildContext context) async {
     try {
-      FilePickerResult result = await FilePicker.platform.pickFiles(
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['txt'],
         //allowed extension to choose
@@ -454,7 +464,7 @@ class _TerminalAppState extends State with WidgetsBindingObserver {
       if (result != null) {
         //if there is selected file
         //
-        File selectedFile = File(result.files.single.path);
+        File selectedFile = File(result.files.single.path ?? "");
         String fileTheraphy = await selectedFile.readAsString();
         blState.theraphy = Theraphy(fieldscript: fileTheraphy);
         addTotermStr(fileTheraphy);

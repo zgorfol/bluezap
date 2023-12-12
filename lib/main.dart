@@ -47,7 +47,8 @@ class MyApp extends StatelessWidget {
 
       theme: ThemeData(
         primaryColor: Colors.blue,
-        accentColor: Colors.green,
+        //accentColor: Colors.green,
+
         textTheme: TextTheme(bodyText2: TextStyle(color: Colors.black)),
         backgroundColor: Colors.black,
         iconTheme: IconThemeData(color: Colors.white),

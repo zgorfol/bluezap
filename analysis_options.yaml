@@ -14,7 +14,7 @@ analyzer:
     use_of_void_result: ignore
     missing_default_value_for_parameter: ignore
     not_initialized_non_nullable_instance_field: ignore
-    default_list_constructor: ignore
+    #default_list_constructor: ignore
     unnecessary_this: ignore
     prefer_single_quotes: ignore
     unnecessary_new: ignore

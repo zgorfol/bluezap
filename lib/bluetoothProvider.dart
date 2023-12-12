@@ -16,7 +16,9 @@ class BluetoothProvider extends DataProvider {
   final FlutterBluetoothSerial _bluetooth = FlutterBluetoothSerial.instance;
   BluetoothState _bluetoothState = BluetoothState.UNKNOWN;
   bool _progressBar = false;
-  BluetoothConnection _connection;
+
+  late BluetoothConnection _connection;
+
   List<BluetoothDevice> _devicesList = [];
 
   var changeController = new StreamController<MyEvent>();
@@ -25,8 +27,10 @@ class BluetoothProvider extends DataProvider {
   Stream<MyEvent> get onChange => changeController.stream;
   Stream<MyEvent> get onSnack => SnackController.stream;
 
-  BluetoothConnection get connection => this._connection;
-  bool get isConnected => connection != null && connection.isConnected;
+  bool isConnected = false;
+  //BluetoothConnection get connection => this._connection;
+
+  //bool get isConnected => connection != null && connection.isConnected;
 
   bool get progressBar => _progressBar;
   BluetoothState get bluetoothState => _bluetoothState;
@@ -66,10 +70,12 @@ class BluetoothProvider extends DataProvider {
     notifyListeners();
   }
 
+  /*
   set connection(BluetoothConnection _conn) {
     _connection = _conn;
     notifyListeners();
   }
+  */
 
   BluetoothProvider() {
     this
@@ -79,7 +85,8 @@ class BluetoothProvider extends DataProvider {
               initBlueState(),
             })
         .catchError((onError) => {
-              initdataSaved(null),
+              initdataSaved(DataProvider(
+                  ldevice: "", lsearchStr: "", lsearchURL: "", ltheraphy: "")),
               initBlueState(),
             });
   }
@@ -105,14 +112,14 @@ class BluetoothProvider extends DataProvider {
   @override
   void dispose() {
     if (isConnected) {
-      connection.dispose();
-      connection = null;
+      _connection.dispose();
+      //connection = null;
     }
     super.dispose();
   }
 
   // Request Bluetooth permission from the user
-  Future<void> enableBluetooth() async {
+  Future<bool> enableBluetooth() async {
     // Retrieving the current Bluetooth state
 
     try {
@@ -157,10 +164,12 @@ class BluetoothProvider extends DataProvider {
         await BluetoothConnection.toAddress(ldevice.address).then((_conn) {
           print('Connected to the device');
 
-          connection = _conn;
+          isConnected = _conn.isConnected;
+
+          _connection = _conn;
           //notifyListeners();
 
-          connection.input.listen(
+          _conn.input?.listen(
             (data) {
               //Data entry point
               changeController.add(MyEvent(String.fromCharCodes(data)));
@@ -187,8 +196,9 @@ class BluetoothProvider extends DataProvider {
   // Method to disconnect bluetooth
   Future<bool> disconnect() async {
     //this._needProgIndicator = false;
-    await connection.close().then((_connect) => {
-          connection = _connection,
+    await _connection.close().then((_connect) => {
+          isConnected = false,
+          //connection = _connection,
           //notifyListeners(),
         });
     //connection = _connection;
@@ -201,8 +211,8 @@ class BluetoothProvider extends DataProvider {
   // for turning the Bluetooth device on
   Future sendMessageToBluetooth(String inTxt) async {
     if (isConnected) {
-      connection.output.add(ascii.encode(inTxt + "\r\n"));
-      await connection.output.allSent
+      _connection.output.add(ascii.encode(inTxt + "\r\n"));
+      await _connection.output.allSent
           .then((value) => show('Message sent : ' + inTxt));
     }
   }
@@ -238,7 +248,7 @@ class BluetoothProvider extends DataProvider {
 
   // Method to show a Snackbar,
   // taking message as the text
-  Future show(String message, {duration: const Duration(seconds: 1)}) async {
+  Future show(String message, {duration = const Duration(seconds: 1)}) async {
     //snackMessage = message;
     SnackController.add(MyEvent(message));
     /*
